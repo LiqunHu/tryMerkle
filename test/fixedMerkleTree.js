@@ -1,17 +1,20 @@
-const { MerkleTree, PartialMerkleTree } =  require('fixed-merkle-tree')
-const { assert, should } = require("chai");
-const {createHash} = require('crypto')
+const { MerkleTree, PartialMerkleTree } = require('fixed-merkle-tree')
+const { assert, should } = require('chai')
+const { createHash } = require('crypto')
 
-const sha256Hash = (left, right) => createHash('sha256').update(`${left}${right}`).digest('hex')
-const ZERO_ELEMENT = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
+const sha256Hash = (left, right) =>
+  createHash('sha256').update(`${left}${right}`).digest('hex')
+const ZERO_ELEMENT =
+  '21663839004416932945382355908790599225266501822907911457504978515578255421292'
 
 describe('MerkleTree', () => {
-
   describe('#constructor', () => {
-
     it('should have correct zero root', () => {
       const tree = new MerkleTree(10, [])
-      return should().equal(tree.root, '3060353338620102847451617558650138132480')
+      return should().equal(
+        tree.root,
+        '3060353338620102847451617558650138132480',
+      )
     })
 
     it('should have correct 1 element root', () => {
@@ -39,8 +42,14 @@ describe('MerkleTree', () => {
     })
 
     it('should work with optional hash function and zero element', () => {
-      const tree = new MerkleTree(10, [1, 2, 3, 4, 5, 6], { hashFunction: sha256Hash, zeroElement: 'zero' })
-      should().equal(tree.root, 'a377b9fa0ed41add83e56f7e1d0e2ebdb46550b9d8b26b77dece60cb67283f19')
+      const tree = new MerkleTree(10, [1, 2, 3, 4, 5, 6], {
+        hashFunction: sha256Hash,
+        zeroElement: 'zero',
+      })
+      should().equal(
+        tree.root,
+        'a377b9fa0ed41add83e56f7e1d0e2ebdb46550b9d8b26b77dece60cb67283f19',
+      )
     })
   })
 
@@ -83,18 +92,8 @@ describe('MerkleTree', () => {
     })
 
     it('should give the same result as sequential inserts', () => {
-      const initialArray = [
-        [1],
-        [1, 2],
-        [1, 2, 3],
-        [1, 2, 3, 4],
-      ]
-      const insertedArray = [
-        [11],
-        [11, 12],
-        [11, 12, 13],
-        [11, 12, 13, 14],
-      ]
+      const initialArray = [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4]]
+      const insertedArray = [[11], [11, 12], [11, 12, 13], [11, 12, 13, 14]]
       for (const initial of initialArray) {
         for (const inserted of insertedArray) {
           const tree1 = new MerkleTree(10, initial)
@@ -160,10 +159,16 @@ describe('MerkleTree', () => {
 
     it('should fail to update incorrect index', () => {
       const tree = new MerkleTree(10, [1, 2, 3, 4, 5])
-      should().throw((() => tree.update(-1, 42)), 'Insert index out of bounds: -1')
-      should().throw((() => tree.update(6, 42)), 'Insert index out of bounds: 6')
+      should().throw(
+        () => tree.update(-1, 42),
+        'Insert index out of bounds: -1',
+      )
+      should().throw(() => tree.update(6, 42), 'Insert index out of bounds: 6')
       // @ts-ignore
-      should().throw((() => tree.update('qwe', 42)), 'Insert index out of bounds: qwe')
+      should().throw(
+        () => tree.update('qwe', 42),
+        'Insert index out of bounds: qwe',
+      )
     })
 
     it('should fail to update over capacity', () => {
@@ -181,7 +186,10 @@ describe('MerkleTree', () => {
 
     it('should work with comparator', () => {
       const tree = new MerkleTree(10, [1, 2, 3, 4, 5])
-      should().equal(tree.indexOf(4, (arg0, arg1) => arg0 === arg1), 3)
+      should().equal(
+        tree.indexOf(4, (arg0, arg1) => arg0 === arg1),
+        3,
+      )
     })
 
     it('should return -1 for non existent element', () => {
@@ -206,7 +214,6 @@ describe('MerkleTree', () => {
         '4986731814143931240516913804278285467648',
         '1918547053077726613961101558405545328640',
         '5444383861051812288142814494928935059456',
-
       ])
     })
 
@@ -230,10 +237,10 @@ describe('MerkleTree', () => {
 
     it('should fail on incorrect index', () => {
       const tree = new MerkleTree(10, [1, 2, 3, 4])
-      should().throw((() => tree.path(-1)), 'Index out of bounds: -1')
-      should().throw((() => tree.path(5)), 'Index out of bounds: 5')
+      should().throw(() => tree.path(-1), 'Index out of bounds: -1')
+      should().throw(() => tree.path(5), 'Index out of bounds: 5')
       // @ts-ignore
-      should().throw((() => tree.path('qwe')), 'Index out of bounds: qwe')
+      should().throw(() => tree.path('qwe'), 'Index out of bounds: qwe')
     })
 
     it('should work for correct string index', () => {
@@ -252,7 +259,6 @@ describe('MerkleTree', () => {
         '4986731814143931240516913804278285467648',
         '1918547053077726613961101558405545328640',
         '5444383861051812288142814494928935059456',
-
       ])
     })
   })
@@ -305,14 +311,22 @@ describe('MerkleTree', () => {
 
     it('should be able to create partial tree from last slice', () => {
       const [, , , lastSlice] = fullTree.getTreeSlices()
-      const partialTree = new PartialMerkleTree(10, lastSlice.edge, lastSlice.elements)
+      const partialTree = new PartialMerkleTree(
+        10,
+        lastSlice.edge,
+        lastSlice.elements,
+      )
       assert.deepEqual(fullTree.root, partialTree.root)
     }).timeout(10000)
 
     it('should be able to build full tree from slices', () => {
       const slices = fullTree.getTreeSlices()
       const lastSlice = slices.pop()
-      const partialTree = new PartialMerkleTree(10, lastSlice.edge, lastSlice.elements)
+      const partialTree = new PartialMerkleTree(
+        10,
+        lastSlice.edge,
+        lastSlice.elements,
+      )
       slices.reverse().forEach(({ edge, elements }) => {
         partialTree.shiftEdge(edge, elements)
       })
@@ -322,7 +336,11 @@ describe('MerkleTree', () => {
     it('should return same path', () => {
       const slices = fullTree.getTreeSlices()
       const lastSlice = slices.pop()
-      const partialTree = new PartialMerkleTree(10, lastSlice.edge, lastSlice.elements)
+      const partialTree = new PartialMerkleTree(
+        10,
+        lastSlice.edge,
+        lastSlice.elements,
+      )
       slices.reverse().forEach(({ edge, elements }) => {
         partialTree.shiftEdge(edge, elements)
       })
@@ -331,7 +349,8 @@ describe('MerkleTree', () => {
 
     it('should throw if invalid number of elements', () => {
       const [firstSlice] = fullTree.getTreeSlices()
-      const call = () => new PartialMerkleTree(10, firstSlice.edge, firstSlice.elements)
+      const call = () =>
+        new PartialMerkleTree(10, firstSlice.edge, firstSlice.elements)
       should().throw(call, 'Invalid number of elements')
     }).timeout(10000)
   })
@@ -343,12 +362,10 @@ describe('MerkleTree', () => {
         '4027992409016347597424110157229339967488',
         '923221781152860005594997320673730232320',
         '752191049236692618445397735417537626112',
-
       ],
       [
         '81822854828781486047086122479545722339328',
         '3591172241203040147397382471352592629760',
-
       ],
       ['2729943778107054496417267081388406865920'],
       ['4562739390655416913642128116127918718976'],
@@ -421,7 +438,6 @@ describe('MerkleTree', () => {
       dst.insert(10)
 
       should().equal(src.root, dst.root)
-
     })
   })
 })

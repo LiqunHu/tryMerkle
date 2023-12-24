@@ -26,7 +26,10 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-promise": "^6.1.1",
     "hardhat": "^2.19.3",
+    "mocha": "^10.2.0",
     "prettier": "^3.1.1",
+    "prettier-plugin-organize-imports": "^3.2.4",
+    "prettier-plugin-packagejson": "^2.4.7",
     "rimraf": "^5.0.5"
   }
 }
