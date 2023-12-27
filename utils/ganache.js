@@ -3,7 +3,7 @@ let provider = undefined
 
 async function send(method, params = []) {
     // eslint-disable-next-line no-undef
-    await provider.send(method, params)
+    return await provider.send(method, params)
 }
 
 const setProvider = (p) => {
