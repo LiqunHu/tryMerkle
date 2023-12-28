@@ -1,4 +1,3 @@
-const { expect } = require('chai')
 const { network, ethers } = require('hardhat')
 const { mimcSpongecontract, buildMimcSponge } = require('circomlibjs')
 const { MerkleTree } = require('fixed-merkle-tree')
@@ -69,7 +68,7 @@ describe('MerkleTreeWithHistory', async function () {
         //   let merkleTreeWithHistory
         const zeroValue = await merkleInstance.ZERO_VALUE()
         const firstSubtree = await merkleInstance.filledSubtrees(0)
-        expect(firstSubtree).to.equal(toFixedHex(zeroValue))
+        firstSubtree.should.be.equal(toFixedHex(zeroValue))
       } catch (error) {
         console.log(error)
       }
@@ -85,7 +84,7 @@ describe('MerkleTreeWithHistory', async function () {
           await merkleInstance.insert(toFixedHex(i), { address: account })
           tree.insert(i)
           rootFromContract = await merkleInstance.getLastRoot()
-          expect(toFixedHex(tree.root)).to.equal(rootFromContract.toString())
+          toFixedHex(tree.root).should.be.equal(rootFromContract.toString())
         }
       } catch (error) {
         console.log(error)
@@ -100,15 +99,20 @@ describe('MerkleTreeWithHistory', async function () {
       await merkleTreeWithHistory.waitForDeployment()
 
       for (let i = 0; i < 2 ** levels; i++) {
-        expect(merkleTreeWithHistory.insert(toFixedHex(i + 42))).to.eventually
+        await merkleTreeWithHistory.insert(toFixedHex(i + 42)).should.be
+          .fulfilled
       }
 
-      expect(merkleTreeWithHistory.insert(toFixedHex(1337))).to.be.rejectedWith(
-        'Merkle tree is full. No more leaves can be added',
+      let error = await merkleTreeWithHistory.insert(toFixedHex(1337)).should.be
+        .rejected
+      error.message.should.be.equal(
+        "VM Exception while processing transaction: reverted with reason string 'Merkle tree is full. No more leaves can be added'",
       )
 
-      expect(merkleTreeWithHistory.insert(toFixedHex(1))).to.be.rejectedWith(
-        'Merkle tree is full. No more leaves can be added',
+      error = await merkleTreeWithHistory.insert(toFixedHex(1)).should.be
+        .rejected
+      error.message.should.be.equal(
+        "VM Exception while processing transaction: reverted with reason string 'Merkle tree is full. No more leaves can be added'",
       )
     })
 
@@ -132,20 +136,23 @@ describe('MerkleTreeWithHistory', async function () {
   describe('#isKnownRoot', () => {
     it('should work', async () => {
       for (let i = 1; i < 5; i++) {
-        await merkleInstance.insert(toFixedHex(i), { from: account })
+        await merkleInstance.insert(toFixedHex(i), { from: account }).should.be
+          .fulfilled
         await tree.insert(i)
         let isKnown = await merkleInstance.isKnownRoot(toFixedHex(tree.root))
-        expect(isKnown).be.equal(true)
+        isKnown.should.be.equal(true)
       }
 
-      await merkleInstance.insert(toFixedHex(42), { from: account })
+      await merkleInstance.insert(toFixedHex(42), { from: account }).should.be
+        .fulfilled
       // check outdated root
       let isKnown = await merkleInstance.isKnownRoot(toFixedHex(tree.root))
       isKnown.should.be.equal(true)
     })
 
     it('should not return uninitialized roots', async () => {
-      await merkleInstance.insert(toFixedHex(42), { from: account }).should.be.fulfilled
+      await merkleInstance.insert(toFixedHex(42), { from: account }).should.be
+        .fulfilled
       let isKnown = await merkleInstance.isKnownRoot(toFixedHex(0))
       isKnown.should.be.equal(false)
     })
