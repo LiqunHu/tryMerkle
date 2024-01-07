@@ -2,13 +2,15 @@
   "name": "trymerkle",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "main": "index.js",
   "scripts": {
+    "build:circuit": "mkdir -p build/circuits",
+    "build:circuit:compile": "circom circuits/withdraw.circom -o build/circuits/ --r1cs --json --wasm --sym",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1",
     "aes-circom": "https://github.com/Electron-Labs/aes-circom",

@@ -5,19 +5,16 @@ const {
   buildPedersenHash,
   buildMimcSponge,
 } = require('circomlibjs')
-const crypto = require('crypto')
 const { MerkleTree } = require('fixed-merkle-tree')
 const wasm_tester = require('circom_tester').wasm
 const {
+  randomBigint,
   intToLEBuffer,
   intToBEBuffer,
   toFixedHex,
   u8ToHex,
   unstringifyBigInts,
 } = require('../utils/util')
-
-const rbigint = (nbytes) =>
-  BigInt(`0x${crypto.randomBytes(nbytes).toString('hex')}`)
 
 describe('withdrawCircom', async function () {
   let pedersenHash
@@ -43,7 +40,7 @@ describe('withdrawCircom', async function () {
   describe('#test circom', () => {
     it('test withdraw', async function () {
       try {
-        let deposit = { nullifier: rbigint(31), secret: rbigint(31) }
+        let deposit = { nullifier: randomBigint(31), secret: randomBigint(31) }
         deposit.preimage = Buffer.concat([
           intToLEBuffer(deposit.nullifier, 31),
           intToLEBuffer(deposit.secret, 31),

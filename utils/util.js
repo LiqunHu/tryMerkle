@@ -1,6 +1,10 @@
 const { randomBytes, createCipheriv, createDecipheriv } = require('node:crypto')
 const { Buffer } = require('node:buffer')
 
+function randomBigint(nbytes) {
+  return BigInt(`0x${randomBytes(nbytes).toString('hex')}`)
+}
+
 function buffer2bits(buff) {
   const res = []
   for (let i = 0; i < buff.length; i++) {
@@ -13,13 +17,6 @@ function buffer2bits(buff) {
     }
   }
   return res
-}
-
-function convertToLength(hexInput, len) {
-  while (hexInput.length != len) {
-    hexInput = '0' + hexInput
-  }
-  return hexInput
 }
 
 function intToLEBuffer(x, bufSize) {
@@ -72,10 +69,13 @@ function aes256CtrEncrypt(key, message, iv) {
 }
 
 function toFixedHex(number, length = 32) {
-  let str = BigInt(number).toString(16)
-  while (str.length < length * 2) str = '0' + str
-  str = '0x' + str
-  return str
+  return (
+    '0x' +
+    (number instanceof Buffer
+      ? number.toString('hex')
+      : BigInt(number).toString(16)
+    ).padStart(length * 2, '0')
+  )
 }
 
 function u8ToHex(buf) {
@@ -99,6 +99,7 @@ function unstringifyBigInts(o) {
 }
 
 module.exports = {
+  randomBigint,
   buffer2bits,
   intToLEBuffer,
   intToBEBuffer,

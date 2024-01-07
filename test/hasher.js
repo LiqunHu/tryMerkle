@@ -1,15 +1,8 @@
 require('chai').use(require('chai-as-promised')).should()
 const path = require('path')
 const { buildBabyjub, buildPedersenHash } = require('circomlibjs')
-const crypto = require('crypto')
 const wasm_tester = require('circom_tester').wasm
-const { intToLEBuffer, intToBEBuffer } = require('../utils/util')
-
-const rbigint = (nbytes) => {
-  let hex = `0x${crypto.randomBytes(nbytes).toString('hex')}`
-  console.log(hex)
-  return BigInt(hex)
-}
+const { randomBigint, intToLEBuffer, intToBEBuffer } = require('../utils/util')
 
 describe('hasher', async function () {
   let pedersen
@@ -73,7 +66,7 @@ describe('hasher', async function () {
 
     it('hash random', async function () {
       try {
-        let a = rbigint(31)
+        let a = randomBigint(31)
         const b = Buffer.from(a.toString(16), 'hex')
         const h = pedersen.hash(b)
         const hP = babyJub.unpackPoint(h)
@@ -97,8 +90,8 @@ describe('hasher', async function () {
 
     it('hash 496', async function () {
       try {
-        let x = rbigint(31)
-        let y = rbigint(31)
+        let x = randomBigint(31)
+        let y = randomBigint(31)
         const b = Buffer.concat([intToLEBuffer(x, 31), intToLEBuffer(y, 31)])
         const h = pedersen.hash(b)
         const hP = babyJub.unpackPoint(h)
@@ -111,7 +104,7 @@ describe('hasher', async function () {
 
         const input = {
           nullifier: x,
-          secret: y
+          secret: y,
         }
 
         const circuit = await wasm_tester(
