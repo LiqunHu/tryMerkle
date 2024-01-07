@@ -98,6 +98,25 @@ function unstringifyBigInts(o) {
   }
 }
 
+function hexifyBigInts(o) {
+  if (typeof (o) === "bigint" || (o instanceof BigInt)) {
+      let str = o.toString(16);
+      while (str.length < 64) str = "0" + str;
+      str = "0x" + str;
+      return str;
+  } else if (Array.isArray(o)) {
+      return o.map(hexifyBigInts);
+  } else if (typeof o == "object") {
+      const res = {};
+      for (let k in o) {
+          res[k] = hexifyBigInts(o[k]);
+      }
+      return res;
+  } else {
+      return o;
+  }
+}
+
 module.exports = {
   randomBigint,
   buffer2bits,
@@ -110,4 +129,5 @@ module.exports = {
   u8ToHex,
   toFixedHex,
   unstringifyBigInts,
+  hexifyBigInts
 }

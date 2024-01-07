@@ -18,6 +18,7 @@ const {
   randomBigint,
   intToLEBuffer,
   unstringifyBigInts,
+  hexifyBigInts,
   toFixedHex,
 } = require('../utils/util')
 const snarkjs = require('snarkjs')
@@ -87,6 +88,27 @@ describe('ETHTornado', async function () {
     return { pathElements, pathIndices, root: tree.root }
   }
 
+  function toSolidityInput(proof, publicSignals) {
+    const flatProof = unstringifyBigInts([
+      proof.pi_a[0],
+      proof.pi_a[1],
+      proof.pi_b[0][1],
+      proof.pi_b[0][0],
+      proof.pi_b[1][1],
+      proof.pi_b[1][0],
+      proof.pi_c[0],
+      proof.pi_c[1],
+    ])
+    const result = {
+      proof:
+        '0x' + flatProof.map((x) => x.toString(16).padStart(64, '0')).join(''),
+    }
+    if (publicSignals) {
+      result.publicSignals = hexifyBigInts(unstringifyBigInts(publicSignals))
+    }
+    return result
+  }
+
   async function generateSnarkProof(input) {
     const curve = await buildBn128()
     const ptau_0 = { type: 'mem' }
@@ -107,12 +129,26 @@ describe('ETHTornado', async function () {
     const wtns = { type: 'mem' }
     let proof
     let publicSignals
-    // const circuit = path.join(__dirname, '..', 'build', 'circuits', 'withdraw.r1cs')
-    const circuit_r1cs = path.join(__dirname, 'circuits', 'circuit.r1cs')
-    const circuit_wasm = path.join(__dirname, 'circuits', 'circuit.wasm')
+    const circuit_r1cs = path.join(
+      __dirname,
+      '..',
+      'build',
+      'circuits',
+      'withdraw.r1cs',
+    )
+    const circuit_wasm = path.join(
+      __dirname,
+      '..',
+      'build',
+      'circuits',
+      'withdraw_js',
+      'withdraw.wasm',
+    )
+    // const circuit_r1cs = path.join(__dirname, 'circuits', 'circuit.r1cs')
+    // const circuit_wasm = path.join(__dirname, 'circuits', 'circuit.wasm')
 
     // powersoftau new
-    await snarkjs.powersOfTau.newAccumulator(curve, 11, ptau_0)
+    await snarkjs.powersOfTau.newAccumulator(curve, 15, ptau_0)
 
     //powersoftau contribute
     await snarkjs.powersOfTau.contribute(ptau_0, ptau_1, 'C1', 'Entropy1')
@@ -183,7 +219,11 @@ describe('ETHTornado', async function () {
     )
 
     //zkey verify r1cs
-    res = await snarkjs.zKey.verifyFromR1cs(circuit_r1cs, ptau_final, zkey_final)
+    res = await snarkjs.zKey.verifyFromR1cs(
+      circuit_r1cs,
+      ptau_final,
+      zkey_final,
+    )
     console.log(res)
 
     //zkey verify init
@@ -194,12 +234,8 @@ describe('ETHTornado', async function () {
     vKey = await snarkjs.zKey.exportVerificationKey(zkey_final)
 
     //witness calculate
-    // await snarkjs.wtns.calculate(
-    //   unstringifyBigInts(input),
-    //   circuit,
-    //   wtns,
-    // )
-    await snarkjs.wtns.calculate({ a: 11, b: 2 }, circuit_wasm, wtns)
+    await snarkjs.wtns.calculate(unstringifyBigInts(input), circuit_wasm, wtns)
+    // await snarkjs.wtns.calculate({ a: 11, b: 2 }, circuit_wasm, wtns)
 
     //checks witness complies with r1cs
     await snarkjs.wtns.check(circuit_r1cs, wtns)
@@ -234,7 +270,7 @@ describe('ETHTornado', async function () {
 
     await curve.terminate()
 
-    return { vKey, proof }
+    return toSolidityInput(proof, publicSignals)
   }
 
   before(async () => {
@@ -298,7 +334,7 @@ describe('ETHTornado', async function () {
         })
 
         // deposit
-        const tx = await tornadoInstance.deposit(
+        let tx = await tornadoInstance.deposit(
           Buffer.from(deposit.commitment.toString(16).padStart(64, '0'), 'hex'),
           {
             value: ethers.parseEther('1'),
@@ -326,7 +362,22 @@ describe('ETHTornado', async function () {
           pathElements: pathElements,
           pathIndices: pathIndices,
         }
-        const { vKey, proof } = await generateSnarkProof(input)
+        const { proof } = await generateSnarkProof(input)
+        // const proof = '0x2a5e6cfc496a8532b0076a5675da967923e796e9209ffbec971d80288445677c26e369d0ff2de2f36839a024287cfa70f9c0e956b1cbaa37fdf6b0693d7bb646289e82c3a3ad1c919bc3c950aeadc7d17ee0baa1c3ee694d0ae1ce1062d87e660423acd3a763bcd40a9797beaba5542a361ceee2e4662028221ff942e5ad3bf927dcbdd4477bee6a1a87aba4d2b3b3c4cfdb17658404f0b5646fe641ef9c5368304046d6a94b3acf42ea54f16c2bab3dbe546f17f7884aeef59b3b2364a327e20bb5297ae039ad1b4c75f50f22086fa71ea0242d393d286853d7e1d6370477711debcf7f7b47748f44456e045b7a5e6ecad68fc240cb827d4f5c54130d024e83'
+        balance = await ethers.provider.getBalance(operator)
+        console.log(ethers.formatEther(balance))
+        tx = await tornadoInstance.withdraw(
+          proof,
+          toFixedHex(input.root),
+          toFixedHex(input.nullifierHash),
+          toFixedHex(input.recipient, 20),
+          toFixedHex(input.relayer, 20),
+          toFixedHex(input.fee),
+          toFixedHex(input.refund)
+        )
+        console.log(tx)
+        balance = await ethers.provider.getBalance(operator)
+        console.log(ethers.formatEther(balance))
       } catch (error) {
         console.log(error)
       }
