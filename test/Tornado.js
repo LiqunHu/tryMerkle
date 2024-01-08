@@ -279,6 +279,32 @@ describe('ETHTornado', async function () {
     return toSolidityInput(proof, publicSignals)
   }
 
+  async function generateSnarkProofFromFile(input) {
+    const wtns = { type: 'mem' }
+
+    const circuit_wasm = path.join(
+      __dirname,
+      '..',
+      'build',
+      'circuits',
+      'withdraw_js',
+      'withdraw.wasm',
+    )
+
+    //witness calculate
+    await snarkjs.wtns.calculate(unstringifyBigInts(input), circuit_wasm, wtns)
+
+    //groth16 proof
+    let res = await snarkjs.groth16.prove(path.join(
+      __dirname,
+      '..',
+      'build',
+      'circuits',
+      'withdraw_0001.zkey'
+    ), wtns)
+    return toSolidityInput(res.proof, res.publicSignals)
+  }
+
   before(async () => {
     const mimcSponge = await buildMimcSponge()
     mimcHash = (left, right) =>
@@ -368,7 +394,7 @@ describe('ETHTornado', async function () {
           pathElements: pathElements,
           pathIndices: pathIndices,
         }
-        const { proof } = await generateSnarkProof(input)
+        const { proof } = await generateSnarkProofFromFile(input)
         // const proof = '0x2a5e6cfc496a8532b0076a5675da967923e796e9209ffbec971d80288445677c26e369d0ff2de2f36839a024287cfa70f9c0e956b1cbaa37fdf6b0693d7bb646289e82c3a3ad1c919bc3c950aeadc7d17ee0baa1c3ee694d0ae1ce1062d87e660423acd3a763bcd40a9797beaba5542a361ceee2e4662028221ff942e5ad3bf927dcbdd4477bee6a1a87aba4d2b3b3c4cfdb17658404f0b5646fe641ef9c5368304046d6a94b3acf42ea54f16c2bab3dbe546f17f7884aeef59b3b2364a327e20bb5297ae039ad1b4c75f50f22086fa71ea0242d393d286853d7e1d6370477711debcf7f7b47748f44456e045b7a5e6ecad68fc240cb827d4f5c54130d024e83'
         balance = await ethers.provider.getBalance(operator)
         console.log(ethers.formatEther(balance))
