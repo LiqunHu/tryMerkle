@@ -100,8 +100,14 @@ describe('ETHTornado', async function () {
       proof.pi_c[1],
     ])
     const result = {
-      proof:
-        '0x' + flatProof.map((x) => x.toString(16).padStart(64, '0')).join(''),
+      proof: [
+        [toFixedHex(proof.pi_a[0]), toFixedHex(proof.pi_a[1])],
+        [
+          [toFixedHex(proof.pi_a[0][0]), toFixedHex(proof.pi_a[0][1])],
+          [toFixedHex(proof.pi_a[1][0]), toFixedHex(proof.pi_a[1][1])],
+        ],
+        [toFixedHex(proof.pi_c[0]), toFixedHex(proof.pi_c[1])],
+      ],
     }
     if (publicSignals) {
       result.publicSignals = hexifyBigInts(unstringifyBigInts(publicSignals))
@@ -367,13 +373,13 @@ describe('ETHTornado', async function () {
         balance = await ethers.provider.getBalance(operator)
         console.log(ethers.formatEther(balance))
         tx = await tornadoInstance.withdraw(
-          proof,
+          ...proof,
           toFixedHex(input.root),
           toFixedHex(input.nullifierHash),
           toFixedHex(input.recipient, 20),
           toFixedHex(input.relayer, 20),
           toFixedHex(input.fee),
-          toFixedHex(input.refund)
+          toFixedHex(input.refund),
         )
         console.log(tx)
         balance = await ethers.provider.getBalance(operator)

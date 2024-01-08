@@ -16,7 +16,7 @@ import "./MerkleTreeWithHistory.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IVerifier {
-  function verifyProof(bytes memory _proof, uint256[6] memory _input) external returns (bool);
+  function verifyProof(uint256[2] memory _pA, uint256[2][2] memory _pB, uint256[2] memory _pC, uint256[6] memory _input) external returns (bool);
 }
 
 abstract contract Tornado is MerkleTreeWithHistory, ReentrancyGuard {
@@ -74,7 +74,9 @@ abstract contract Tornado is MerkleTreeWithHistory, ReentrancyGuard {
       - optional fee that goes to the transaction sender (usually a relay)
   */
   function withdraw(
-    bytes calldata _proof,
+    uint256[2] calldata pA, 
+    uint256[2][2] calldata pB, 
+    uint256[2] calldata pC,
     bytes32 _root,
     bytes32 _nullifierHash,
     address payable _recipient,
@@ -87,8 +89,7 @@ abstract contract Tornado is MerkleTreeWithHistory, ReentrancyGuard {
     require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
     require(
       verifier.verifyProof(
-        _proof,
-        [uint256(_root), uint256(_nullifierHash), uint256(uint160(address(_recipient))), uint256(uint160(address(_relayer))), _fee, _refund]
+        pA, pB, pC, [uint256(_root), uint256(_nullifierHash), uint256(uint160(address(_recipient))), uint256(uint160(address(_relayer))), _fee, _refund]
       ),
       "Invalid withdraw proof"
     );
