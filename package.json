@@ -7,8 +7,8 @@
   "author": "",
   "main": "index.js",
   "scripts": {
-    "build:circuit": "mkdir -p build/circuits",
-    "build:circuit:compile": "circom circuits/withdraw.circom -o build/circuits/ --r1cs --json --wasm --sym",
+    "build:circuit": "mkdir -p build/circuits && circom circuits/withdraw.circom -o build/circuits/ --r1cs --json --wasm --sym",
+    "build:circuit:sha256": "mkdir -p build/sha256 && circom circuits/sha256.circom -o build/sha256/ --r1cs --json --wasm --sym",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
