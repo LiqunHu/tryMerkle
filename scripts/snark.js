@@ -39,6 +39,7 @@ async function main() {
   )
   // const circuit_r1cs = path.join(__dirname, 'circuits', 'circuit.r1cs')
   // const circuit_wasm = path.join(__dirname, 'circuits', 'circuit.wasm')
+  let startTime = performance.now()
   console.log('powers of tau start')
 
   // powersoftau new
@@ -82,8 +83,10 @@ async function main() {
   // powersoftau verify
   let res = await snarkjs.powersOfTau.verify(ptau_final)
   if (!res) throw 'powersoftau verify error'
+  let endTime = performance.now()
+  let runTime = endTime - startTime
 
-  console.log('powers of tau end')
+  console.log(`powers of tau end ${runTime} milliseconds to run`)
 
   console.log('groth16 start')
 
@@ -142,7 +145,9 @@ async function main() {
   //groth16 verify
   res = await snarkjs.groth16.verify(vKey, publicSignals, proof)
   if (!res) throw 'groth16 verify error'
-  console.log('snarkJS: OK!')
+  endTime = performance.now()
+  runTime = endTime - startTime
+  console.log(`snarkJS: OK! ${runTime} milliseconds to run`)
 
   // //plonk setup
   // await snarkjs.plonk.setup(
@@ -162,6 +167,7 @@ async function main() {
   // //plonk verify
   // res = await snarkjs.plonk.verify(vKey, publicSignals, proof)
   // console.log(res)
+  process.exit(0)
 }
 
 main().catch((error) => {
