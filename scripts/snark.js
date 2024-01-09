@@ -1,5 +1,6 @@
 const snarkjs = require('snarkjs')
 const { buildBn128 } = require('ffjavascript')
+const path = require('path')
 
 async function main() {
   const curve = await buildBn128()
@@ -38,6 +39,7 @@ async function main() {
   )
   // const circuit_r1cs = path.join(__dirname, 'circuits', 'circuit.r1cs')
   // const circuit_wasm = path.join(__dirname, 'circuits', 'circuit.wasm')
+  console.log('powers of tau start')
 
   // powersoftau new
   await snarkjs.powersOfTau.newAccumulator(curve, 15, ptau_0)
@@ -80,6 +82,10 @@ async function main() {
   // powersoftau verify
   let res = await snarkjs.powersOfTau.verify(ptau_final)
   if (!res) throw 'powersoftau verify error'
+
+  console.log('powers of tau end')
+
+  console.log('groth16 start')
 
   //groth16 setup
   await snarkjs.zKey.newZKey(circuit_r1cs, ptau_final, zkey_0)
