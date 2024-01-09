@@ -1,4 +1,5 @@
 const snarkjs = require('snarkjs')
+const { buildBn128 } = require('ffjavascript')
 
 async function main() {
   const curve = await buildBn128()
