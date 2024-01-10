@@ -3,6 +3,7 @@ const { buildBn128 } = require('ffjavascript')
 const path = require('path')
 
 async function main() {
+  const curve = await buildBn128()
   const zkey_0 = { type: 'mem' }
   const zkey_1 = { type: 'mem' }
   const zkey_2 = { type: 'mem' }
@@ -70,7 +71,7 @@ async function main() {
   )
 
   //zkey verify r1cs
-  res = await snarkjs.zKey.verifyFromR1cs(circuit_r1cs, ptau_final, zkey_final)
+  let res = await snarkjs.zKey.verifyFromR1cs(circuit_r1cs, ptau_final, zkey_final)
   if (!res) throw 'zkey verify r1cs error'
 
   //zkey verify init
@@ -98,6 +99,7 @@ async function main() {
   endTime = performance.now()
   runTime = endTime - startTime
   console.log(`snarkJS: OK! ${runTime} milliseconds to run`)
+  process.exit(0)
 }
 main().catch((error) => {
   console.error(error)
