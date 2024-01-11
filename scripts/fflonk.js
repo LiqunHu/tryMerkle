@@ -12,7 +12,7 @@ async function main() {
     '..',
     'build',
     'sha256',
-    'pot15_final.ptau',
+    'pot18_final.ptau',
   )
   const circuit_r1cs = path.join(
     __dirname,
